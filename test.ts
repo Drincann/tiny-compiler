@@ -1,4 +1,5 @@
 import { parse, tokenize } from "./src";
+
 const cases = [{
   src: '(concat (concat "" "a") "bc")', except: {
     tokens: [{ "type": "paren", "value": "(" }, { "type": "name", "value": "concat" }, { "type": "paren", "value": "(" }, { "type": "name", "value": "concat" }, { "type": "string", "value": "\"\"" }, { "type": "string", "value": "\"a\"" }, { "type": "paren", "value": ")" }, { "type": "string", "value": "\"bc\"" }, { "type": "paren", "value": ")" }],
@@ -53,7 +54,8 @@ try {
     console.log(`pass ${testCase.src}`);
   });
 } catch (e: any) {
-  throw new Error(`
+  console.error(e.stack)
+  console.error(`
   
   except:
   ${JSON.stringify(e?.except, undefined, "  ")}
