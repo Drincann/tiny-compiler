@@ -1,32 +1,41 @@
 import { isNameChar, isNumberChar } from "../helper";
 
-type TokenNumberValue = `${number}`;
-type TokenParenValue = '(' | ')';
-type TokenStringValue = `"${string}"`;
-type TokenNameValue = string;
+interface ParenToken {
+  type: 'paren';
+  value: '(' | ')';
+}
+interface NumberToken {
+  type: 'number';
+  value: `${number}`;
+}
+interface StringToken {
+  type: 'string';
+  value: `"${string}"`;
+}
+interface NameToken {
+  type: 'name';
+  value: string;
+}
 
-interface Token {
-  type: 'paren' | 'number' | 'string' | 'name',
-  value: TokenParenValue
-  | TokenNumberValue
-  | TokenStringValue
-  | TokenNameValue,
-};
+export type Token =
+  ParenToken
+  | NumberToken
+  | StringToken
+  | NameToken;
 
 type StateMachine = (input: string) => Token | null;
-
 const genStateMachine = (): StateMachine => {
   const NONE = 0, STRING = 1, NUMBER = 2, NAME = 3;
   let state: number = NONE;
   let value = '';
-  return char => {
+  return (char): Token | null => {
     switch (state) {
       case NONE:
         switch (true) {
           case char === '\n' || char === ' ':
             break;
           case char === '(' || char === ')': // end of the paren
-            return { type: 'paren', value: char as TokenParenValue };
+            return { type: 'paren', value: char } as ParenToken;
           case isNumberChar(char) === true: // start of the number
             state = NUMBER;
             value = char;
@@ -49,7 +58,7 @@ const genStateMachine = (): StateMachine => {
           case '"': // end of the string
             state = NONE;
             value += '"';
-            return { type: 'string', value: value as TokenStringValue };
+            return { type: 'string', value: value } as StringToken;
           default:
             value += char;
             break;
@@ -63,7 +72,7 @@ const genStateMachine = (): StateMachine => {
             break;
           default: // end of the number
             state = NONE;
-            return { type: 'number', value: value as TokenNumberValue };
+            return { type: 'number', value: value } as NumberToken;
         }
         break;
 
@@ -71,7 +80,7 @@ const genStateMachine = (): StateMachine => {
         switch (true) {
           case char === '\n' || char === ' ':
             state = NONE;
-            return { type: 'name', value: value as TokenNameValue };
+            return { type: 'name', value: value } as NameToken;
           case isNameChar(char):
             value += char;
             break;
