@@ -26,42 +26,53 @@ interface StringASTNode /* string token */ {
 
 export const parse = (tokens: Token[]): AST => {
   const tokenIt: Iterator<Token> = tokens[Symbol.iterator]()
-  let currToken = tokenIt.next().value;
+  let currToken = tokenIt.next().value as Token;
 
   const walk = (): ASTNode => {
-    try {
-      if (currToken.type === 'number') {
-        return {
-          type: 'NumberLiteral',
-          value: currToken.value,
-        };
-      } else if (currToken.type === 'string') {
-        return {
-          type: 'StringLiteral',
-          value: currToken.value
-        };
-      } else if (currToken.type === 'paren' && currToken.value === '(') {
-        // recursively call walk to walk throw the nested node
-        currToken = tokenIt.next().value;
-        if (currToken.type !== 'name') throw new TypeError(currToken.type);
-
-        const callExpASTNode = {
-          type: 'CallExpression',
-          name: currToken.value,
-          params: [],
-        } as CallExpressionASTNode;
-        currToken = tokenIt.next().value;
-        while (currToken.type !== 'paren' ||
-          (currToken.type === 'paren' && currToken.value !== ')')) {
-          callExpASTNode.params.push(walk());
-        }
-        return callExpASTNode;
-      }
-    } finally {
+    if (currToken.type === 'paren' && currToken.value === '(') {
+      // recursively call walk to walk throw the nested node
+      // pass the '('
       currToken = tokenIt.next().value;
+      // expect the name token
+      if (currToken.type !== 'name') throw new TypeError(currToken.type);
+
+      const callExpASTNode = {
+        type: 'CallExpression',
+        name: currToken.value,
+        params: [],
+      } as CallExpressionASTNode;
+      // pass the name token
+      currToken = tokenIt.next().value;
+
+      while (/* begin with the '(' and resolve the token behind it 
+                until meet the ')' matching the same level paren */
+        !(currToken.type === 'paren' && currToken.value === ')')
+      ) {
+        if (currToken.type === 'paren' && currToken.value === '(') {
+          /* nested call expression */
+          callExpASTNode.params.push(walk());
+        } else /* other value token */ {
+          if (currToken.type === 'number') {
+            callExpASTNode.params.push({
+              type: 'NumberLiteral',
+              value: currToken.value,
+            });
+          } else if (currToken.type === 'string') {
+            callExpASTNode.params.push({
+              type: 'StringLiteral',
+              value: currToken.value
+            });
+          }
+          // pass the token not nested
+          currToken = tokenIt.next().value;
+        }
+      }
+      // pass the ')'
+      currToken = tokenIt.next().value;
+      return callExpASTNode;
     }
 
-    throw new TypeError(currToken.type);
+    throw new TypeError(`${currToken.type} ${currToken.value}`);
   };
 
   const ast: AST = { type: 'Program', body: [], };
