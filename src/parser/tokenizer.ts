@@ -1,4 +1,4 @@
-import { isNameChar, isNumberChar } from "./helper";
+import { isNameChar, isNumberChar } from "../helper";
 
 type TokenNumberValue = `${number}`;
 type TokenParenValue = '(' | ')';
@@ -83,7 +83,7 @@ const genStateMachine = (): StateMachine => {
   }
 }
 
-export const tokenizer = (input: string) => {
+export const tokenize = (input: string) => {
   const tokens: Token[] = [];
   const step = genStateMachine();
   for (const char of input) {

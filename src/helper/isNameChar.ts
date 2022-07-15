@@ -1,21 +1,8 @@
-export const isNumberChar = (char: string) => {
-  switch (char) {
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-    case '0':
-      return true;
-    default:
-      return false;
-  };
-};
-
+/**
+ * Check the input char is a part of(or whole) a name token or not.
+ * @param char input char
+ * @returns is a valid char part of a name?
+ */
 export const isNameChar = (char: string) => {
   switch (char) {
     case 'a':
@@ -48,4 +35,4 @@ export const isNameChar = (char: string) => {
     default:
       return false;
   }
-};
+}

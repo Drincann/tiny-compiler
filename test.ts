@@ -1,4 +1,4 @@
-import { tokenizer } from "./tokenizer";
+import { tokenize } from "./src";
 
-console.log(tokenizer('(add 22 (subtract 4 2))'));
-console.log(tokenizer('(concat (concat "" "a") "bc")'));
+console.log(tokenize('(add 22 (subtract 4 2))'));
+console.log(tokenize('(concat (concat "" "a") "bc")'));
