@@ -1,6 +1,5 @@
 import clc from 'cli-color';
-import { parse, tokenize } from "./src";
-import { generate } from "./src/generator/generator";
+import { compiler } from "./src";
 
 const cases = [{
   src: '(concat (concat "" "a") "bc")', except: {
@@ -45,17 +44,17 @@ const compare = (o1: any, o2: any): boolean => {
 
 try {
   cases.forEach(testCase => {
-    const tokens = tokenize(testCase.src);
+    const tokens = compiler.steps.tokenize(testCase.src);
     if (!compare(tokens, testCase.except.tokens)) throw {
       except: testCase.except.tokens, get: tokens, step: 'tokenize',
     };
 
-    const ast = parse(tokens);
+    const ast = compiler.steps.parse(tokens);
     if (!compare(ast, testCase.except.ast)) throw {
       except: testCase.except.ast, get: ast, step: 'parse',
     };
 
-    const code = generate(ast);
+    const code = compiler.steps.generate(ast);
     if (!compare(code, testCase.except.code)) throw {
       except: testCase.except.code, get: code, step: 'generate',
     }
