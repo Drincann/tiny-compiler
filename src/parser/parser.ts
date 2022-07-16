@@ -1,8 +1,9 @@
 import { NameToken, NumberToken, StringToken, Token } from "./tokenizer";
 
-type LispAST = ProgramASTNode;
-type LispASTNode =
-  CallExpressionASTNode
+export type LispAST = ProgramASTNode;
+export type LispASTNode =
+  ProgramASTNode
+  | CallExpressionASTNode
   | NumberASTNode
   | StringASTNode;
 interface ProgramASTNode /* root */ {
@@ -50,7 +51,7 @@ export const parse = (tokens: Token[]): LispAST => {
       ) {
         if (currToken.type === 'paren' && currToken.value === '(') {
           /* nested call expression */
-          callExpASTNode.params.push(walk());
+          callExpASTNode.params.push(walk() as CallExpressionASTNode);
         } else /* other value token */ {
           if (currToken.type === 'number') {
             callExpASTNode.params.push({
