@@ -1,14 +1,18 @@
+import clc from 'cli-color';
 import { parse, tokenize } from "./src";
+import { generate } from "./src/generator/generator";
 
 const cases = [{
   src: '(concat (concat "" "a") "bc")', except: {
     tokens: [{ "type": "paren", "value": "(" }, { "type": "name", "value": "concat" }, { "type": "paren", "value": "(" }, { "type": "name", "value": "concat" }, { "type": "string", "value": "\"\"" }, { "type": "string", "value": "\"a\"" }, { "type": "paren", "value": ")" }, { "type": "string", "value": "\"bc\"" }, { "type": "paren", "value": ")" }],
     ast: { "type": "Program", "body": [{ "type": "CallExpression", "name": "concat", "params": [{ "type": "CallExpression", "name": "concat", "params": [{ "type": "StringLiteral", "value": "\"\"" }, { "type": "StringLiteral", "value": "\"a\"" }] }, { "type": "StringLiteral", "value": "\"bc\"" }] }] },
+    code: 'concat(concat("","a"),"bc")',
   },
 }, {
   src: '(add 22 (subtract 4 2))', except: {
     tokens: [{ "type": "paren", "value": "(" }, { "type": "name", "value": "add" }, { "type": "number", "value": "22" }, { "type": "paren", "value": "(" }, { "type": "name", "value": "subtract" }, { "type": "number", "value": "4" }, { "type": "number", "value": "2" }, { "type": "paren", "value": ")" }, { "type": "paren", "value": ")" }],
-    ast: { "type": "Program", "body": [{ "type": "CallExpression", "name": "add", "params": [{ "type": "NumberLiteral", "value": "22" }, { "type": "CallExpression", "name": "subtract", "params": [{ "type": "NumberLiteral", "value": "4" }, { "type": "NumberLiteral", "value": "2" }] }] }] }
+    ast: { "type": "Program", "body": [{ "type": "CallExpression", "name": "add", "params": [{ "type": "NumberLiteral", "value": "22" }, { "type": "CallExpression", "name": "subtract", "params": [{ "type": "NumberLiteral", "value": "4" }, { "type": "NumberLiteral", "value": "2" }] }] }] },
+    code: 'add(22,subtract(4,2))',
   },
 },
 ];
@@ -51,17 +55,22 @@ try {
       except: testCase.except.ast, get: ast, step: 'parse',
     };
 
-    console.log(`pass ${testCase.src}`);
+    const code = generate(ast);
+    if (!compare(code, testCase.except.code)) throw {
+      except: testCase.except.code, get: code, step: 'generate',
+    }
+
+    console.log(`pass ${clc.white(testCase.src)} -> ${clc.green(code)}
+    `);
   });
 } catch (e: any) {
-  console.error(e.stack)
+  console.error(`fail ${e.step} ${e.get}`);
+  e.stack ?? console.error(e.stack)
   console.error(`
-  
-  except:
-  ${JSON.stringify(e?.except, undefined, "  ")}
+except:
+${JSON.stringify(e?.except, undefined, "  ")}
 
-  get:
-  ${JSON.stringify(e?.get, undefined, "  ")}
-
+get:
+${JSON.stringify(e?.get, undefined, "  ")}
   `)
 }
