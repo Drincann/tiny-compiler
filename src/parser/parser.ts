@@ -1,7 +1,7 @@
 import { NameToken, NumberToken, StringToken, Token } from "./tokenizer";
 
-type AST = ProgramASTNode;
-type ASTNode =
+type LispAST = ProgramASTNode;
+type LispASTNode =
   CallExpressionASTNode
   | NumberASTNode
   | StringASTNode;
@@ -24,11 +24,11 @@ interface StringASTNode /* string token */ {
 }
 
 
-export const parse = (tokens: Token[]): AST => {
+export const parse = (tokens: Token[]): LispAST => {
   const tokenIt: Iterator<Token> = tokens[Symbol.iterator]()
   let currToken = tokenIt.next().value as Token;
 
-  const walk = (): ASTNode => {
+  const walk = (): LispASTNode => {
     if (currToken.type === 'paren' && currToken.value === '(') {
       // recursively call walk to walk throw the nested node
       // pass the '('
@@ -36,11 +36,11 @@ export const parse = (tokens: Token[]): AST => {
       // expect the name token
       if (currToken.type !== 'name') throw new TypeError(currToken.type);
 
-      const callExpASTNode = {
+      const callExpASTNode: CallExpressionASTNode = {
         type: 'CallExpression',
         name: currToken.value,
         params: [],
-      } as CallExpressionASTNode;
+      };
       // pass the name token
       currToken = tokenIt.next().value;
 
@@ -75,7 +75,7 @@ export const parse = (tokens: Token[]): AST => {
     throw new TypeError(`${currToken.type} ${currToken.value}`);
   };
 
-  const ast: AST = { type: 'Program', body: [], };
+  const ast: LispAST = { type: 'Program', body: [], };
   while (currToken) ast.body.push(walk() as CallExpressionASTNode)
   return ast;
 };
