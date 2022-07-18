@@ -30,12 +30,29 @@ export const parse = (tokens: Token[]): LispAST => {
   let currToken = tokenIt.next().value as Token;
 
   const walk = (): LispASTNode => {
-    if (currToken.type === 'paren' && currToken.value === '(') {
+    if (currToken?.type === 'number') {
+      const node: NumberASTNode = {
+        type: 'NumberLiteral',
+        value: currToken.value
+      }
+      currToken = tokenIt.next().value as Token;
+      return node;
+    }
+    if (currToken?.type === 'string') {
+      const node: StringASTNode = {
+        type: 'StringLiteral',
+        value: currToken.value
+      }
+      currToken = tokenIt.next().value as Token;
+      return node;
+    }
+
+    if (currToken?.type === 'paren' && currToken.value === '(') {
       // recursively call walk to walk throw the nested node
       // pass the '('
       currToken = tokenIt.next().value;
       // expect the name token
-      if (currToken.type !== 'name') throw new TypeError(currToken.type);
+      if (currToken?.type !== 'name') throw new TypeError(currToken?.type);
 
       const callExpASTNode: CallExpressionASTNode = {
         type: 'CallExpression',
@@ -47,33 +64,17 @@ export const parse = (tokens: Token[]): LispAST => {
 
       while (/* begin with the '(' and resolve the token behind it 
                 until meet the ')' matching the same level paren */
-        !(currToken.type === 'paren' && currToken.value === ')')
+        !(currToken?.type === 'paren' && currToken.value === ')')
       ) {
-        if (currToken.type === 'paren' && currToken.value === '(') {
-          /* nested call expression */
-          callExpASTNode.params.push(walk() as CallExpressionASTNode);
-        } else /* other value token */ {
-          if (currToken.type === 'number') {
-            callExpASTNode.params.push({
-              type: 'NumberLiteral',
-              value: currToken.value,
-            });
-          } else if (currToken.type === 'string') {
-            callExpASTNode.params.push({
-              type: 'StringLiteral',
-              value: currToken.value
-            });
-          }
-          // pass the token not nested
-          currToken = tokenIt.next().value;
-        }
+        /* nested call expression */
+        callExpASTNode.params.push(walk() as CallExpressionASTNode);
       }
       // pass the ')'
       currToken = tokenIt.next().value;
       return callExpASTNode;
     }
 
-    throw new TypeError(`${currToken.type} ${currToken.value}`);
+    throw new TypeError(`${currToken?.type} ${currToken?.value}`);
   };
 
   const ast: LispAST = { type: 'Program', body: [], };
