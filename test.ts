@@ -5,13 +5,15 @@ const cases = [{
   src: '(concat (concat "" "a") "bc")', except: {
     tokens: [{ "type": "paren", "value": "(" }, { "type": "name", "value": "concat" }, { "type": "paren", "value": "(" }, { "type": "name", "value": "concat" }, { "type": "string", "value": "\"\"" }, { "type": "string", "value": "\"a\"" }, { "type": "paren", "value": ")" }, { "type": "string", "value": "\"bc\"" }, { "type": "paren", "value": ")" }],
     ast: { "type": "Program", "body": [{ "type": "CallExpression", "name": "concat", "params": [{ "type": "CallExpression", "name": "concat", "params": [{ "type": "StringLiteral", "value": "\"\"" }, { "type": "StringLiteral", "value": "\"a\"" }] }, { "type": "StringLiteral", "value": "\"bc\"" }] }] },
-    code: 'concat(concat("","a"),"bc")',
+    transformed: { type: 'Program', body: [{ type: 'ExpressionStatement', expression: { type: 'CallExpression', callee: { type: 'Identifier', name: 'concat' }, arguments: [{ type: 'CallExpression', callee: { type: 'Identifier', name: 'concat' }, arguments: [{ type: 'StringLiteral', value: '""' }, { type: 'StringLiteral', value: '"a"' }] }, { type: 'StringLiteral', value: '"bc"' }] } }] },
+    code: 'concat(concat("","a"),"bc");',
   },
 }, {
   src: '(add 22 (subtract 4 2))', except: {
     tokens: [{ "type": "paren", "value": "(" }, { "type": "name", "value": "add" }, { "type": "number", "value": "22" }, { "type": "paren", "value": "(" }, { "type": "name", "value": "subtract" }, { "type": "number", "value": "4" }, { "type": "number", "value": "2" }, { "type": "paren", "value": ")" }, { "type": "paren", "value": ")" }],
     ast: { "type": "Program", "body": [{ "type": "CallExpression", "name": "add", "params": [{ "type": "NumberLiteral", "value": "22" }, { "type": "CallExpression", "name": "subtract", "params": [{ "type": "NumberLiteral", "value": "4" }, { "type": "NumberLiteral", "value": "2" }] }] }] },
-    code: 'add(22,subtract(4,2))',
+    transformed: { type: 'Program', body: [{ type: 'ExpressionStatement', expression: { type: 'CallExpression', callee: { type: 'Identifier', name: 'add' }, arguments: [{ type: 'NumberLiteral', value: '22' }, { type: 'CallExpression', callee: { type: 'Identifier', name: 'subtract' }, arguments: [{ type: 'NumberLiteral', value: '4' }, { type: 'NumberLiteral', value: '2' }] }] } }] },
+    code: 'add(22,subtract(4,2));',
   },
 },
 ];
@@ -53,8 +55,12 @@ try {
     if (!compare(ast, testCase.except.ast)) throw {
       except: testCase.except.ast, get: ast, step: 'parse',
     };
+    const clikeAst = compiler.steps.transform(ast);
+    if (!compare(clikeAst, testCase.except.transformed)) throw {
+      except: testCase.except.transformed, get: clikeAst, step: 'transform',
+    };
 
-    const code = compiler.steps.generate(ast);
+    const code = compiler.steps.generate(clikeAst);
     if (!compare(code, testCase.except.code)) throw {
       except: testCase.except.code, get: code, step: 'generate',
     }
