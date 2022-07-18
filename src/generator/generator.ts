@@ -1,14 +1,19 @@
-import { LispASTNode } from "../parser/parser"
+import { CLickASTNode } from "../transformer/transform";
 
-export const generate = (ast: LispASTNode): string => {
+export const generate = (ast: CLickASTNode): string => {
   switch (ast.type) {
     case 'Program':
       return ast.body.map(generate).join();
+    case 'ExpressionStatement':
+      return `${generate(ast.expression)};`;
     case 'CallExpression':
-      return `${ast.name}(${ast.params.map(generate).join(',')})`
+      return `${generate(ast.callee)}(${ast.arguments.map(generate).join(',')})`
     case 'NumberLiteral':
       return ast.value;
     case 'StringLiteral':
       return ast.value;
+    case 'Identifier':
+      return ast.name;
+
   }
 }
