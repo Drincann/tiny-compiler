@@ -34,8 +34,8 @@ interface IdentifierLiteralASTNode {
   name: string;
 }
 
-const traverse = (ast: LispASTNode, transformedAst: CLickASTNode,
-  visit: (node: LispASTNode, parentNode: LispASTNode, transformedAstNode: CLickASTNode) => CLickASTNode): void => {
+type Visitor = (node: LispASTNode, parentNode: LispASTNode, transformedParentNode: CLickASTNode) => CLickASTNode;
+const traverse = (ast: LispASTNode, transformedAst: CLickASTNode, visit: Visitor): void => {
   switch (ast.type) {
     case 'Program':
       ast.body.forEach(node => {
@@ -48,8 +48,6 @@ const traverse = (ast: LispASTNode, transformedAst: CLickASTNode,
       });
       break;
     case 'NumberLiteral':
-      // visit(ast, null);
-      break;
     case 'StringLiteral':
       // visit(ast, null);
       break;
@@ -65,7 +63,7 @@ export const transform = (ast: LispAST): CLickAST => {
   };
 
 
-  traverse(ast, transformed, (node: LispASTNode, parentNode: LispASTNode, transformedAstNode: CLickASTNode): CLickASTNode => {
+  traverse(ast, transformed, (node, parentNode, transformedParentNode) => {
     switch (node.type) {
       case 'CallExpression':
         let expression: ExpressionStatementASTNode | CallExpressionASTNode | null = null;
@@ -81,7 +79,7 @@ export const transform = (ast: LispAST): CLickAST => {
               arguments: [],
             },
           };
-          (transformedAstNode as ProgramASTNode).body.push(expression);
+          (transformedParentNode as ProgramASTNode).body.push(expression);
           return expression;
         } else if (parentNode.type === 'CallExpression') {
           expression = {
@@ -92,7 +90,7 @@ export const transform = (ast: LispAST): CLickAST => {
             },
             arguments: [],
           };
-          (transformedAstNode as ExpressionStatementASTNode).expression.arguments.push(expression);
+          (transformedParentNode as ExpressionStatementASTNode).expression.arguments.push(expression);
           return expression;
         }
         throw new TypeError(`CallExpression literal not allowed in ${parentNode.type}`);
@@ -101,27 +99,27 @@ export const transform = (ast: LispAST): CLickAST => {
           type: 'StringLiteral',
           value: node.value,
         };
-        if (transformedAstNode.type === 'ExpressionStatement') {
-          transformedAstNode.expression.arguments.push(clikeStrNode);
+        if (transformedParentNode.type === 'ExpressionStatement') {
+          transformedParentNode.expression.arguments.push(clikeStrNode);
           return clikeStrNode;
-        } else if (transformedAstNode.type === 'CallExpression') {
-          transformedAstNode.arguments.push(clikeStrNode);
+        } else if (transformedParentNode.type === 'CallExpression') {
+          transformedParentNode.arguments.push(clikeStrNode);
           return clikeStrNode;
         }
-        throw new TypeError(`String literal not allowed in ${transformedAstNode.type}`);
+        throw new TypeError(`String literal not allowed in ${transformedParentNode.type}`);
       case 'NumberLiteral':
         const clikeNumNode: NumberLiteralASTNode = {
           type: 'NumberLiteral',
           value: node.value,
         };
-        if (transformedAstNode.type === 'ExpressionStatement') {
-          transformedAstNode.expression.arguments.push(clikeNumNode);
+        if (transformedParentNode.type === 'ExpressionStatement') {
+          transformedParentNode.expression.arguments.push(clikeNumNode);
           return clikeNumNode;
-        } else if (transformedAstNode.type === 'CallExpression') {
-          transformedAstNode.arguments.push(clikeNumNode);
+        } else if (transformedParentNode.type === 'CallExpression') {
+          transformedParentNode.arguments.push(clikeNumNode);
           return clikeNumNode;
         }
-        throw new TypeError(`Number literal not allowed in ${transformedAstNode.type}`);
+        throw new TypeError(`Number literal not allowed in ${transformedParentNode.type}`);
       default:
         throw new TypeError(`Unknown AST node type: ${(node as LispASTNode)?.type}`);
     }
