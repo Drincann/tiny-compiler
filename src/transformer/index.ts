@@ -1,1 +1,1 @@
-export { transform } from './transform';
+export { transform, CLickASTNode } from './transformer';

@@ -1,4 +1,4 @@
-import { CLickASTNode } from "../transformer/transform";
+import { CLickASTNode } from "../transformer";
 
 export const generate = (ast: CLickASTNode): string => {
   switch (ast.type) {
